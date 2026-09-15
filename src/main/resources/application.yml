@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: flight-tracker
+
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/flighttracker}
+    username: ${DATABASE_USERNAME:flighttracker}
+    password: ${DATABASE_PASSWORD:flighttracker}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+telegram:
+  bot-token: ${TELEGRAM_BOT_TOKEN:mock_bot_token}
+  allowed-chat-id: ${TELEGRAM_ALLOWED_CHAT_ID:0}
+
+flight:
+  provider: ${FLIGHT_PROVIDER:mock}
+  timezone: ${FLIGHT_TIMEZONE:Asia/Kolkata}
+
+  scheduler:
+    interval: ${FLIGHT_SCHEDULER_INTERVAL:60000}
+
+  polling:
+    enabled: ${FLIGHT_POLLING_ENABLED:true}
+    far-out: ${POLLING_FAR_OUT:6h}
+    within-24h: ${POLLING_WITHIN_24H:2h}
+    within-6h: ${POLLING_WITHIN_6H:30m}
+    within-2h: ${POLLING_WITHIN_2H:10m}
+
+aerodatabox:
+  api-key: ${AERODATABOX_API_KEY:}
+  base-url: ${AERODATABOX_BASE_URL:https://aerodatabox.p.rapidapi.com}
+  rapidapi-host: ${AERODATABOX_HOST:aerodatabox.p.rapidapi.com}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: INFO
+    com.example.flighttracker: DEBUG

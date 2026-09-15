@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: flight-tracker-db
+    environment:
+      POSTGRES_DB: flighttracker
+      POSTGRES_USER: flighttracker
+      POSTGRES_PASSWORD: flighttracker
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flighttracker -d flighttracker"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: flight-tracker-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/flighttracker
+      DATABASE_USERNAME: flighttracker
+      DATABASE_PASSWORD: flighttracker
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_ALLOWED_CHAT_ID: ${TELEGRAM_ALLOWED_CHAT_ID}
+      FLIGHT_PROVIDER: ${FLIGHT_PROVIDER:-mock}
+      FLIGHT_TIMEZONE: ${FLIGHT_TIMEZONE:-Asia/Kolkata}
+      AERODATABOX_API_KEY: ${AERODATABOX_API_KEY:-}
+
+volumes:
+  pgdata:
