@@ -1,4 +1,4 @@
-# ✈️ Flight Landing Telegram Tracker
+# Flight Landing Telegram Tracker
 
 [![Java](https://img.shields.io/badge/Java-21%20%7C%2017-orange.svg)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.4-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -6,29 +6,29 @@
 [![Docker](https://img.shields.io/badge/Docker%20Compose-Enabled-blue.svg)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-A lightweight, private single-user Telegram bot built with **Java 21 / Spring Boot 3.x** and **PostgreSQL** that monitors commercial flights and delivers real-time Telegram notifications when a tracked flight lands.
+A private single-user Telegram bot built with Java 21 / Spring Boot 3.x and PostgreSQL that monitors commercial flights and delivers real-time Telegram notifications when a tracked flight lands.
 
-Designed specifically for monitoring cabin crew roster flights or personal flight monitoring with high reliability, minimal API usage, and zero duplicate alerts.
+Designed for monitoring cabin crew roster flights or personal flight monitoring with high reliability, minimal API usage, and zero duplicate alerts.
 
 ---
 
-## 🌟 Key Features
+## Features
 
-- **📱 Telegram Bot Control**: Track, inspect, and cancel flight monitoring directly from Telegram.
-- **🔒 Single-User Security**: Strict chat ID authorization (`TELEGRAM_ALLOWED_CHAT_ID`). Unauthorized access attempts are rejected instantly.
-- **🔌 Replaceable Flight Data Provider**: Isolated behind the `FlightDataProvider` interface. Supports **AeroDataBox (RapidAPI)** and a zero-cost built-in **Mock Provider** for offline testing.
-- **⏱️ Adaptive Polling Scheduler**: Adjusts poll intervals dynamically to conserve API quota:
+- **Telegram Bot Control**: Track, inspect, and cancel flight monitoring directly from Telegram.
+- **Single-User Security**: Strict chat ID authorization (`TELEGRAM_ALLOWED_CHAT_ID`). Unauthorized access attempts are rejected instantly.
+- **Replaceable Flight Data Provider**: Isolated behind the `FlightDataProvider` interface. Supports AeroDataBox (RapidAPI) and a zero-cost built-in Mock Provider for offline testing.
+- **Adaptive Polling Scheduler**: Adjusts poll intervals dynamically to conserve API quota:
   - **> 24 hours out**: Polls every 6 hours
   - **24 – 6 hours out**: Polls every 2 hours
   - **6 – 2 hours out**: Polls every 30 minutes
   - **< 2 hours to landing**: Polls every 10 minutes
-- **⚡ Event-Driven Webhooks**: Optional endpoint (`POST /webhooks/flights`) for real-time push alert integrations.
-- **🛡️ Idempotent Landing Detection**: PostgreSQL transactional updates ensure **exactly one** Telegram notification per landing event, even across application crashes or restarts.
-- **🗄️ Database Migrations**: Automatic Flyway schema management.
+- **Event-Driven Webhooks**: Optional endpoint (`POST /webhooks/flights`) for real-time push alert integrations.
+- **Idempotent Landing Detection**: PostgreSQL transactional updates ensure exactly one Telegram notification per landing event, even across application crashes or restarts.
+- **Database Migrations**: Automatic Flyway schema management.
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```mermaid
 flowchart TD
@@ -48,7 +48,7 @@ flowchart TD
 
 ---
 
-## 🤖 Telegram Commands
+## Telegram Commands
 
 | Command | Description | Example |
 | :--- | :--- | :--- |
@@ -61,12 +61,12 @@ flowchart TD
 
 ---
 
-## 🚀 Quick Start (Local Setup)
+## Quick Start (Local Setup)
 
 ### Prerequisites
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) or Docker Compose
-- [Maven](https://maven.apache.org/) (optional for local non-containerized builds)
+- Docker Desktop or Docker Compose
+- Maven (optional for non-containerized builds)
 
 ### 1. Clone & Configure
 
@@ -100,8 +100,8 @@ docker compose up -d --build
 ```
 
 This starts:
-- **PostgreSQL 16** container on port `5432`
-- **Spring Boot 3.3.4** application container on port `8080`
+- PostgreSQL 16 container on port `5432`
+- Spring Boot 3.3.4 application container on port `8080`
 
 View live application logs:
 ```bash
@@ -110,7 +110,34 @@ docker compose logs -f app
 
 ---
 
-## ⚙️ Configuration Parameters
+## Cloud Deployment (Google Cloud Platform)
+
+To keep the bot running 24/7 on Google Cloud Compute Engine (Always Free Tier):
+
+1. Create a GCP Compute Engine VM:
+   - **Machine Type**: `e2-micro` (1 vCPU, 1 GB memory)
+   - **Region**: `us-central1` (Iowa), `us-east1` (South Carolina), or `us-west1` (Oregon)
+   - **Boot Disk**: Ubuntu 22.04 LTS (30 GB Standard Persistent Disk)
+2. SSH into your VM and install Docker:
+   ```bash
+   curl -fsSL https://get.docker.com | sh
+   sudo usermod -aG docker $USER
+   newgrp docker
+   ```
+3. Clone repository and run:
+   ```bash
+   git clone https://github.com/abhudaym/flight-tracker-bot.git
+   cd flight-tracker-bot
+   cp .env.example .env
+   nano .env
+   docker compose up -d --build
+   ```
+
+Containers are configured with `restart: unless-stopped` so services automatically start on VM reboots.
+
+---
+
+## Configuration Parameters
 
 | Property | Environment Variable | Default | Description |
 | :--- | :--- | :--- | :--- |
@@ -123,7 +150,7 @@ docker compose logs -f app
 
 ---
 
-## 🧪 Testing
+## Testing
 
 Run the unit and integration test suite:
 
@@ -135,6 +162,6 @@ Includes unit tests for flight number normalization, state transitions, idempote
 
 ---
 
-## 📄 License
+## License
 
 Distributed under the MIT License. See `LICENSE` for details.
