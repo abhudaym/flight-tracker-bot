@@ -1,4 +1,4 @@
-# Flight Landing Telegram Tracker
+# Adaptive Flight Tracking Bot
 
 [![Java](https://img.shields.io/badge/Java-21%20%7C%2017-orange.svg)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.4-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -6,25 +6,27 @@
 [![Docker](https://img.shields.io/badge/Docker%20Compose-Enabled-blue.svg)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-A private single-user Telegram bot built with Java 21 / Spring Boot 3.x and PostgreSQL that monitors commercial flights and delivers real-time Telegram notifications when a tracked flight lands.
+A high-reliability, single-user Telegram bot built with **Java 21 / Spring Boot 3.x** and **PostgreSQL** that tracks commercial flights and delivers real-time Telegram notifications when a flight lands.
 
-Designed for monitoring cabin crew roster flights or personal flight monitoring with high reliability, minimal API usage, and zero duplicate alerts.
+### Technical Motivation
+
+Monitoring flight arrivals manually via web interfaces or flight tracking apps requires constant status refreshing and manual polling. This bot automates flight monitoring by substituting manual status checks with an automated, adaptive polling engine and instant push alerts on Telegram upon touchdown.
 
 ---
 
 ## Features
 
-- **Telegram Bot Control**: Track, inspect, and cancel flight monitoring directly from Telegram.
-- **Single-User Security**: Strict chat ID authorization (`TELEGRAM_ALLOWED_CHAT_ID`). Unauthorized access attempts are rejected instantly.
-- **Replaceable Flight Data Provider**: Isolated behind the `FlightDataProvider` interface. Supports AeroDataBox (RapidAPI) and a zero-cost built-in Mock Provider for offline testing.
-- **Adaptive Polling Scheduler**: Adjusts poll intervals dynamically to conserve API quota:
+- **Telegram Bot Interface**: Track, inspect, and cancel flight monitoring directly via Telegram commands.
+- **Single-User Architecture**: Intentionally single-user for minimal complexity, low operating cost, and zero-maintenance reliability. Access is strictly gated to `TELEGRAM_ALLOWED_CHAT_ID`. *(Note: Multi-tenant support could be added by introducing user authentication, chat-isolated database models, and per-tenant quota enforcement).*
+- **Pluggable Provider Abstraction**: Decoupled behind the `FlightDataProvider` interface. Supports AeroDataBox (RapidAPI) for live aviation feeds and a built-in Mock Provider for offline testing.
+- **Adaptive Polling Engine**: Dynamically adjusts polling frequency based on time-to-departure to minimize API credit consumption:
   - **> 24 hours out**: Polls every 6 hours
   - **24 – 6 hours out**: Polls every 2 hours
   - **6 – 2 hours out**: Polls every 30 minutes
   - **< 2 hours to landing**: Polls every 10 minutes
-- **Event-Driven Webhooks**: Optional endpoint (`POST /webhooks/flights`) for real-time push alert integrations.
-- **Idempotent Landing Detection**: PostgreSQL transactional updates ensure exactly one Telegram notification per landing event, even across application crashes or restarts.
-- **Database Migrations**: Automatic Flyway schema management.
+- **Event-Driven Webhooks**: Optional endpoint (`POST /webhooks/flights`) for providers supporting push notifications.
+- **Idempotent Landing Alerts**: Database-enforced status flags guarantee exactly one landing notification per flight event, avoiding duplicate messages even after application restarts.
+- **Database Migrations**: Managed via Flyway schema migrations.
 
 ---
 
