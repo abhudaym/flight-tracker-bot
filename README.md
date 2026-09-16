@@ -110,28 +110,6 @@ docker compose logs -f app
 
 ---
 
-## ☁️ 24/7 Cloud Deployment (GCP / VPS)
-
-To keep your bot running 24/7/365 without keeping your laptop open:
-
-1. Create a **GCP Compute Engine VM** (`e2-micro`, `us-central1`, 30GB Standard Disk — 100% Free Tier) or cheap Linux VPS.
-2. SSH into your server and install Docker:
-   ```bash
-   curl -fsSL https://get.docker.com | sh
-   ```
-3. Clone repository and run:
-   ```bash
-   git clone https://github.com/abhudaym/flight-tracker-bot.git
-   cd flight-tracker-bot
-   cp .env.example .env
-   nano .env
-   docker compose up -d --build
-   ```
-
-*(Services are configured with `restart: unless-stopped`, so your containers will automatically auto-start on server reboots).*
-
----
-
 ## ⚙️ Configuration Parameters
 
 | Property | Environment Variable | Default | Description |
