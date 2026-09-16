@@ -59,6 +59,7 @@ public class TelegramUpdateHandler {
             return switch (baseCmd) {
                 case "/start", "/help" -> formatter.formatStartHelp();
                 case "/track" -> handleTrackCommand(chatId, parts);
+                case "/crew" -> handleCrewCommand(chatId, parts);
                 case "/tracked" -> handleTrackedCommand(chatId);
                 case "/status" -> handleStatusCommand(chatId, parts);
                 case "/cancel" -> handleCancelCommand(chatId, parts);
@@ -87,6 +88,44 @@ public class TelegramUpdateHandler {
         } catch (FlightNotFoundException e) {
             return formatter.formatFlightNotFound(rawFlightNumber);
         }
+    }
+
+    private String handleCrewCommand(Long chatId, String[] parts) {
+        if (parts.length < 2) {
+            return "Usage: <code>/crew &lt;flight1&gt; &lt;flight2&gt; ...</code>\nExample: <code>/crew AI171 AI456 AI789</code>";
+        }
+
+        StringBuilder sb = new StringBuilder("📋 <b>Batch Tracking Flights</b>\n\n");
+        int successCount = 0;
+
+        for (int i = 1; i < parts.length; i++) {
+            String rawFlightNumber = parts[i].trim().replaceAll(",", "");
+            if (rawFlightNumber.isBlank()) continue;
+
+            if (!FlightNumberNormalizer.isValid(rawFlightNumber)) {
+                sb.append("❌ <b>").append(rawFlightNumber).append("</b>: Invalid flight number format\n");
+                continue;
+            }
+
+            try {
+                TrackedFlight flight = trackingService.trackFlight(chatId, rawFlightNumber, LocalDate.now(applicationZone));
+                successCount++;
+                sb.append("✈️ <b>").append(flight.getFlightNumber()).append("</b>");
+                if (flight.getDepartureAirport() != null && flight.getArrivalAirport() != null) {
+                    sb.append(" (").append(flight.getDepartureAirport()).append(" → ").append(flight.getArrivalAirport()).append(")");
+                }
+                sb.append(" - Status: ").append(flight.getStatus()).append("\n");
+            } catch (FlightNotFoundException e) {
+                sb.append("❌ <b>").append(rawFlightNumber).append("</b>: Flight not found\n");
+            } catch (Exception e) {
+                sb.append("⚠️ <b>").append(rawFlightNumber).append("</b>: Error tracking flight\n");
+            }
+        }
+
+        if (successCount > 0) {
+            sb.append("\nI'll notify you as each flight lands.");
+        }
+        return sb.toString().trim();
     }
 
     private String handleTrackedCommand(Long chatId) {

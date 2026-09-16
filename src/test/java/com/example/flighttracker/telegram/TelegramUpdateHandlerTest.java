@@ -60,6 +60,25 @@ class TelegramUpdateHandlerTest {
     }
 
     @Test
+    void testCrewCommandSuccess() {
+        TrackedFlight f1 = new TrackedFlight(ALLOWED_CHAT_ID, "AI171", LocalDate.now(), FlightState.AIRBORNE);
+        f1.setDepartureAirport("DEL");
+        f1.setArrivalAirport("BOM");
+
+        TrackedFlight f2 = new TrackedFlight(ALLOWED_CHAT_ID, "AI456", LocalDate.now(), FlightState.SCHEDULED);
+        f2.setDepartureAirport("BOM");
+        f2.setArrivalAirport("BLR");
+
+        when(trackingService.trackFlight(eq(ALLOWED_CHAT_ID), eq("AI171"), any())).thenReturn(f1);
+        when(trackingService.trackFlight(eq(ALLOWED_CHAT_ID), eq("AI456"), any())).thenReturn(f2);
+
+        String response = handler.handleIncomingMessage(ALLOWED_CHAT_ID, "/crew AI171 AI456");
+        assertTrue(response.contains("Batch Tracking Flights"));
+        assertTrue(response.contains("AI171"));
+        assertTrue(response.contains("AI456"));
+    }
+
+    @Test
     void testTrackedCommandEmpty() {
         when(trackingService.getActiveTrackedFlights(ALLOWED_CHAT_ID)).thenReturn(Collections.emptyList());
 

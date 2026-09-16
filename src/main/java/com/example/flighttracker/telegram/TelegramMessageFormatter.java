@@ -28,6 +28,7 @@ public class TelegramMessageFormatter {
                 <b>Commands:</b>
 
                 /track AI171
+                /crew AI171 AI456 AI789
                 /tracked
                 /status AI171
                 /cancel AI171
