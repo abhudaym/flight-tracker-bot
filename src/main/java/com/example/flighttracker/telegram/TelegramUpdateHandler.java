@@ -12,32 +12,46 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class TelegramUpdateHandler {
 
     private static final Logger log = LoggerFactory.getLogger(TelegramUpdateHandler.class);
 
-    private final Long allowedChatId;
+    private final Set<Long> allowedChatIds;
     private final TrackingService trackingService;
     private final TelegramMessageFormatter formatter;
     private final ZoneId applicationZone;
 
     public TelegramUpdateHandler(
-            @Value("${telegram.allowed-chat-id:0}") Long allowedChatId,
+            @Value("${telegram.allowed-chat-id:0}") String rawAllowedChatIds,
             @Value("${flight.timezone:Asia/Kolkata}") String timezone,
             TrackingService trackingService
     ) {
-        this.allowedChatId = allowedChatId;
+        this.allowedChatIds = parseAllowedChatIds(rawAllowedChatIds);
         this.trackingService = trackingService;
         this.applicationZone = ZoneId.of(timezone);
         this.formatter = new TelegramMessageFormatter(this.applicationZone);
     }
 
+    private static Set<Long> parseAllowedChatIds(String rawInput) {
+        if (rawInput == null || rawInput.isBlank()) {
+            return Set.of();
+        }
+        return Arrays.stream(rawInput.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .map(Long::parseLong)
+                .collect(Collectors.toSet());
+    }
+
     public String handleIncomingMessage(Long chatId, String text) {
-        if (chatId == null || !chatId.equals(allowedChatId)) {
+        if (chatId == null || !allowedChatIds.contains(chatId)) {
             log.warn("Unauthorized access attempt from chatId={}", chatId);
             return formatter.formatUnauthorized();
         }

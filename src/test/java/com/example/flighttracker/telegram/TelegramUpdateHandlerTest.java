@@ -28,7 +28,16 @@ class TelegramUpdateHandlerTest {
     @BeforeEach
     void setUp() {
         trackingService = Mockito.mock(TrackingService.class);
-        handler = new TelegramUpdateHandler(ALLOWED_CHAT_ID, "Asia/Kolkata", trackingService);
+        handler = new TelegramUpdateHandler("123456789, 987654321", "Asia/Kolkata", trackingService);
+    }
+
+    @Test
+    void testMultipleAllowedChatIds() {
+        String response1 = handler.handleIncomingMessage(123456789L, "/start");
+        assertTrue(response1.contains("Flight Tracker"));
+
+        String response2 = handler.handleIncomingMessage(987654321L, "/start");
+        assertTrue(response2.contains("Flight Tracker"));
     }
 
     @Test
