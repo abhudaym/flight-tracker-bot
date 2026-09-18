@@ -17,6 +17,17 @@ class FlightNumberNormalizerTest {
     }
 
     @Test
+    void testNormalizeValidTailRegistrations() {
+        assertEquals("VT-EXN", FlightNumberNormalizer.normalize("VT-EXN"));
+        assertEquals("VT-EXN", FlightNumberNormalizer.normalize(" vt-exn "));
+        assertEquals("VTEXN", FlightNumberNormalizer.normalize("vtexn"));
+        assertEquals("N12345", FlightNumberNormalizer.normalize("n12345"));
+        assertEquals("G-XWBA", FlightNumberNormalizer.normalize("g-xwba"));
+        assertTrue(FlightNumberNormalizer.isRegistration("VT-EXN"));
+        assertFalse(FlightNumberNormalizer.isRegistration("AI171"));
+    }
+
+    @Test
     void testInvalidFlightNumbers() {
         assertThrows(IllegalArgumentException.class, () -> FlightNumberNormalizer.normalize(""));
         assertThrows(IllegalArgumentException.class, () -> FlightNumberNormalizer.normalize("   "));

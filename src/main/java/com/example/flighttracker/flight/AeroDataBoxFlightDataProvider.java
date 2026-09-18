@@ -39,11 +39,14 @@ public class AeroDataBoxFlightDataProvider implements FlightDataProvider {
         String normalizedNumber = FlightNumberNormalizer.normalize(flightNumber);
         String formattedDate = flightDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
 
-        log.debug("Querying AeroDataBox for flight={} date={}", normalizedNumber, formattedDate);
+        boolean isReg = FlightNumberNormalizer.isRegistration(normalizedNumber);
+        String endpointPath = isReg ? "/flights/reg/{id}/{date}?dateType=Local" : "/flights/number/{id}/{date}?dateType=Local";
+
+        log.debug("Querying AeroDataBox (isReg={}) for id={} date={}", isReg, normalizedNumber, formattedDate);
 
         try {
             AeroDataBoxResponse[] response = restClient.get()
-                    .uri("/flights/number/{flightNumber}/{date}?dateType=Local", normalizedNumber, formattedDate)
+                    .uri(endpointPath, normalizedNumber, formattedDate)
                     .header("x-rapidapi-key", apiKey)
                     .header("x-rapidapi-host", rapidApiHost)
                     .retrieve()
@@ -56,7 +59,11 @@ public class AeroDataBoxFlightDataProvider implements FlightDataProvider {
                     .body(AeroDataBoxResponse[].class);
 
             if (response == null || response.length == 0) {
-                log.info("AeroDataBox returned empty response for flight={} date={}", normalizedNumber, formattedDate);
+                // If tail registration endpoint returned empty, attempt fallback to flight number endpoint
+                if (isReg) {
+                    return fetchByFlightNumberFallback(normalizedNumber, formattedDate, flightDate);
+                }
+                log.info("AeroDataBox returned empty response for flight/reg={} date={}", normalizedNumber, formattedDate);
                 return Optional.empty();
             }
 
@@ -64,7 +71,7 @@ public class AeroDataBoxFlightDataProvider implements FlightDataProvider {
             return Optional.of(mapToFlightStatus(normalizedNumber, flightDate, item));
 
         } catch (HttpClientErrorException.NotFound e) {
-            log.info("Flight not found on AeroDataBox for flight={} date={}", normalizedNumber, formattedDate);
+            log.info("Flight/Registration not found on AeroDataBox for id={} date={}", normalizedNumber, formattedDate);
             return Optional.empty();
         } catch (HttpClientErrorException.TooManyRequests e) {
             throw new ProviderRateLimitException("AeroDataBox API rate limit exceeded");
@@ -74,6 +81,24 @@ public class AeroDataBoxFlightDataProvider implements FlightDataProvider {
             log.error("Failed to fetch flight status from AeroDataBox: {}", e.getMessage(), e);
             throw new ProviderUnavailableException("Error calling AeroDataBox API", e);
         }
+    }
+
+    private Optional<FlightStatus> fetchByFlightNumberFallback(String normalizedNumber, String formattedDate, LocalDate flightDate) {
+        try {
+            AeroDataBoxResponse[] response = restClient.get()
+                    .uri("/flights/number/{id}/{date}?dateType=Local", normalizedNumber, formattedDate)
+                    .header("x-rapidapi-key", apiKey)
+                    .header("x-rapidapi-host", rapidApiHost)
+                    .retrieve()
+                    .body(AeroDataBoxResponse[].class);
+
+            if (response != null && response.length > 0) {
+                return Optional.of(mapToFlightStatus(normalizedNumber, flightDate, response[0]));
+            }
+        } catch (Exception e) {
+            log.debug("Fallback flight number lookup failed for id={}: {}", normalizedNumber, e.getMessage());
+        }
+        return Optional.empty();
     }
 
     private FlightStatus mapToFlightStatus(String flightNumber, LocalDate flightDate, AeroDataBoxResponse dto) {

@@ -21,19 +21,29 @@ public class TelegramMessageFormatter {
 
     public String formatStartHelp() {
         return """
-                ✈️ <b>Flight Tracker</b>
+                ✈️ <b>Flight Tracker Bot</b>
 
-                I can track flights and notify you when they land.
+                I track commercial flights and aircraft registrations, notifying you when they land.
 
-                <b>Commands:</b>
+                <b>Available Commands:</b>
 
-                /track AI171
-                /crew AI171 AI456 AI789
-                /tracked
-                /status AI171
-                /cancel AI171
-                /cancel_all
-                /help
+                /track &lt;flight_or_tail&gt; - Track flight by number or tail registration
+                <i>Examples: /track AI171, /track VT-EXN</i>
+
+                /crew &lt;flight1&gt; &lt;flight2&gt; ... - Batch track multiple flights
+                <i>Example: /crew AI171 AI456 AI789</i>
+
+                /tracked - List all active monitored flights
+
+                /status &lt;flight_or_tail&gt; - Get live real-time status
+                <i>Example: /status AI171</i>
+
+                /cancel &lt;flight_or_tail&gt; - Stop tracking a specific flight or tail
+                <i>Example: /cancel AI171</i>
+
+                /cancel_all - Stop tracking all active flights
+
+                /help - Show this command list
                 """;
     }
 
