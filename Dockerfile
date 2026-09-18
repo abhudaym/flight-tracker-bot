@@ -2,11 +2,13 @@
 FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
 
+# Pre-fetch Maven dependencies for layer caching
 COPY pom.xml .
-COPY .mvn ./.mvn
-COPY src ./src
+RUN --mount=type=cache,target=/root/.m2 mvn dependency:go-offline -B || true
 
-RUN mvn clean package -DskipTests
+# Copy source code and build package
+COPY src ./src
+RUN --mount=type=cache,target=/root/.m2 mvn package -DskipTests -B
 
 # Stage 2: Runtime container
 FROM eclipse-temurin:17-jre
