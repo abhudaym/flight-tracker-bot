@@ -2,6 +2,9 @@
 FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
 
+# Optimize Maven for low-resource VM environments (GCP e2-micro 1GB RAM)
+ENV MAVEN_OPTS="-Xms64m -Xmx256m -XX:TieredStopAtLevel=1 -Djava.awt.headless=true"
+
 # Pre-fetch Maven dependencies for layer caching
 COPY pom.xml .
 RUN --mount=type=cache,target=/root/.m2 mvn dependency:go-offline -B || true
